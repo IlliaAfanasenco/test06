@@ -1,5 +1,24 @@
-import {useEffect, useState} from "react";
-import {createTemplate, getTemplate, previewTemplate, updateTemplate, variablesTemplate,} from "../../api/template.js";
+import { useEffect, useState } from "react";
+import {
+    createTemplate,
+    getTemplate,
+    previewTemplate,
+    updateTemplate,
+    variablesTemplate,
+} from "../../api/template.js";
+
+const previewMockVariables = {
+    name: "Alex",
+    email: "alex@example.com",
+    meal: "Burger",
+};
+
+const getPlainText = (html) => {
+    return html
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .trim();
+};
 
 export const useTemplate = () => {
     const [templateId, setTemplateId] = useState(null);
@@ -8,69 +27,95 @@ export const useTemplate = () => {
     const [preview, setPreview] = useState("");
 
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [previewLoading, setPreviewLoading] = useState(false);
     const [error, setError] = useState("");
 
     useEffect(() => {
-        console.log("Bay")
-        loadTemplate();
-        loadVariables();
+        init();
     }, []);
 
+    const init = async () => {
+        setLoading(true);
+        setError("");
 
-    const loadTemplate = async () => {
-
-        console.log("Hello")
         try {
-            setLoading(false);
-            const data = await getTemplate();
+            const [templateData, variablesData] = await Promise.all([
+                getTemplate(),
+                variablesTemplate(),
+            ]);
 
-            setTemplateId(data?.id ?? null);
-            setContent(data?.content ?? "");
+            setTemplateId(templateData?.id ?? null);
+            setContent(templateData?.content ?? "");
+            setVariables(variablesData?.variables ?? []);
         } catch (e) {
-            setError(e.message);
+            setError(e?.response?.data?.error || e.message || "something went wrong");
+        } finally {
+            setLoading(false);
         }
     };
 
-
     const saveTemplate = async () => {
-        try {
-            setLoading(true);
+        setSaving(true);
+        setError("");
 
-            const payload = {content};
+        try {
+            const plainText = getPlainText(content);
+
+            if (!plainText) {
+                setError("content is required");
+                return;
+            }
 
             const res = templateId
-                ? await updateTemplate(templateId, payload)
-                : await createTemplate(payload);
+                ? await updateTemplate(templateId, content)
+                : await createTemplate({ content });
 
-            setTemplateId(res.id);
+            setTemplateId(res?.id ?? null);
+            setContent(res?.content ?? content);
         } catch (e) {
-            setError(e.message);
+            setError(e?.response?.data?.error || e.message || "failed to save template");
+        } finally {
+            setSaving(false);
         }
     };
 
     const getPreview = async () => {
-        try {
-            setLoading(true);
+        setPreviewLoading(true);
+        setError("");
 
-            const res = await previewTemplate({content});
-            setPreview(res.html);
-        } catch (e) {
-            setError(e.message);
-        }
-    };
-
-    const loadVariables = async () => {
         try {
-            const res = await variablesTemplate();
-            setVariables(res.variables);
+            const plainText = getPlainText(content);
+
+            if (!plainText) {
+                setError("content is required");
+                return;
+            }
+
+            const res = await previewTemplate({
+                content,
+                variables: previewMockVariables,
+            });
+
+            setPreview(res?.html ?? "");
         } catch (e) {
-            setError(e.message);
+            setError(e?.response?.data?.error || e.message || "failed to generate preview");
+        } finally {
+            setPreviewLoading(false);
         }
     };
 
     return {
-        templateId, content, setContent, variables, preview, loading, error,
-        loadTemplate, saveTemplate, getPreview, loadVariables,
+        templateId,
+        content,
+        setContent,
+        variables,
+        preview,
+        loading,
+        saving,
+        previewLoading,
+        error,
+        saveTemplate,
+        getPreview,
     };
 };
-

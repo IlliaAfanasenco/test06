@@ -26,7 +26,7 @@ const EditorPreview = ({
         []
     );
 
-    const formats = ["bold", "italic", "underline", "list", "bullet"];
+    const formats = ["bold", "italic", "underline", "list"];
 
     const handleInsertVariable = (variable) => {
         const editor = editorRef.current?.getEditor();

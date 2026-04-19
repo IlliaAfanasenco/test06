@@ -3,10 +3,9 @@ import Template from "./components/Template.jsx";
 
 const App = () => {
     return (
-        <h1>
-         Hello
+        <div>
             <Template/>
-        </h1>
+        </div>
     );
 };
 
