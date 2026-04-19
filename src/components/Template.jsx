@@ -1,8 +1,19 @@
 import {useTemplate} from "../hooks/templates/useTemplate.js";
+import EditorPreview from "./EditorPreview.jsx";
 
 
 const Template = () => {
-    const {templateId, content, setContent, variables, preview, loading, error, saveTemplate} = useTemplate()
+    const {
+        templateId,
+        content,
+        setContent,
+        variables,
+        preview,
+        loading,
+        error,
+        saveTemplate,
+        getPreview,
+    } = useTemplate()
 
 
     const modules = {
@@ -11,9 +22,9 @@ const Template = () => {
             [{'list': 'ordered'}, {'list': 'bullet'}],
             ['clean']
         ]
-    }
+    };
 
-    if(loading) {
+    if (loading) {
         return (
             <div>
                 <p>Loading</p>
@@ -23,34 +34,20 @@ const Template = () => {
 
     return (
         <div>
-        <div>
-            {error ? (
-                <div>{error}</div>
-            ) : null}
-
             <div>
-                ti = {templateId}
+                {error ? (<div>{error}</div>) : null}
+                <div>
+                    ti = {templateId}
+                </div>
             </div>
-
-            <textarea onChange={(e) => setContent(e.target.value)}
-                      value={content} >
-            </textarea>
-
-        </div>
-
-         <div>
-             {variables?.map((item) => (
-                 <button key={item}>{item}</button>
-             ))}
-         </div>
-
-            <div>
-                <button onClick={saveTemplate}></button>
-            </div>
-
-            <div>
-                {preview}
-            </div>
+            <EditorPreview
+                content={content}
+                setContent={setContent}
+                variables={variables}
+                preview={preview}
+                saveTemplate={saveTemplate}
+                getPreview={getPreview}
+            />
         </div>
     );
 };

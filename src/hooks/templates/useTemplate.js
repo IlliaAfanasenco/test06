@@ -53,8 +53,7 @@ export const useTemplate = () => {
             setLoading(true);
 
             const res = await previewTemplate({content});
-
-            setPreview(res.preview);
+            setPreview(res.html);
         } catch (e) {
             setError(e.message);
         }
@@ -74,3 +73,4 @@ export const useTemplate = () => {
         loadTemplate, saveTemplate, getPreview, loadVariables,
     };
 };
+
